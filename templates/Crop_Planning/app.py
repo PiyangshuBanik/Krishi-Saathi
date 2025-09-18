@@ -1,10 +1,8 @@
-# app.py
 from flask import Flask, request, jsonify, render_template
 import google.generativeai as genai
 import json
 from flask_cors import CORS
 import re
-from functools import wraps
 import os
 
 app = Flask(__name__)
@@ -50,9 +48,14 @@ except Exception as e:
 
 def clean_ai_response(text_response):
     try:
-        match = re.search(r'```json\s*(\{.*\})\s*```|(\{.*\})', text_response, re.DOTALL)
+        # Extract JSON enclosed in ```json ... ``` or {...}
+        match = re.search(r'```json\s*(\{.*?\})\s*```', text_response, re.DOTALL)
         if match:
-            return match.group(1) or match.group(2)
+            return match.group(1)
+        # fallback to raw JSON
+        match = re.search(r'(\{.*\})', text_response, re.DOTALL)
+        if match:
+            return match.group(1)
     except Exception as e:
         print(f"Error cleaning AI response: {e}")
     return text_response
@@ -65,23 +68,30 @@ def get_ai_prediction_and_guide(user_data):
     conditions = ", ".join([f"{key.replace('_', ' ')}: {value}" for key, value in sanitized_data.items()])
 
     prompt = f"""
-    You are a JSON API that provides agricultural advice.
-    Your entire response MUST be a single, valid JSON object and nothing else.
-    
-    Analyze these farming conditions: {conditions}
-    
-    1. Determine the single best crop that is appropriate for the given conditions.
-    2. Generate a detailed farming guide for that crop. For any lists or steps, use the newline character `\n` to separate items.
-    
-    Return a single JSON object with these exact keys: 
-    "predicted_crop", "title", "how_to_plant", "fertilizer", "timeline", "ideal_rainfall", "post_harvest".
-    """
-    
+You are a JSON API that provides agricultural advice.
+STRICT RULE: Respond ONLY with a single valid JSON object, no extra text.
+
+Conditions: {conditions}
+
+Return JSON with these keys:
+- "predicted_crop"
+- "title"
+- "how_to_plant"
+- "fertilizer"
+- "timeline"
+- "ideal_rainfall"
+- "post_harvest"
+
+If you provide lists or steps, separate them with "\\n".
+"""
+
     try:
         response = genai_model.generate_content(prompt)
-        return response.text
+        if response and response.candidates:
+            text_response = response.candidates[0].content.parts[0].text
+            return text_response
+        return json.dumps({"error": "Empty response from AI"})
     except Exception as e:
-        # This print statement is the crucial change
         print(f"Error during genai.generate_content: {e}")
         return json.dumps({"error": "Failed to generate AI guide."})
 
@@ -102,9 +112,10 @@ def predict():
             return jsonify({'error': message}), 400
         
         raw_ai_response = get_ai_prediction_and_guide(user_input_data)
+        cleaned_response = clean_ai_response(raw_ai_response)
         
         try:
-            ai_response_data = json.loads(clean_ai_response(raw_ai_response))
+            ai_response_data = json.loads(cleaned_response)
             
             response_payload = {
                 "crop": ai_response_data.get('predicted_crop'),
@@ -120,7 +131,8 @@ def predict():
             
             return jsonify(response_payload)
 
-        except json.JSONDecodeError:
+        except json.JSONDecodeError as e:
+            print("Failed to parse AI response:", raw_ai_response)
             return jsonify({'error': 'The AI returned an invalid response. Please try again.'}), 500
 
     except Exception as e:

@@ -1,251 +1,647 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <link rel="icon" type="image/png" href="/images/logo.png">
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Crop Planner AI</title>
-    <link rel="icon" type="image/png" href="/images/logo.png">
-    <link rel="stylesheet" href="../static/style.css">
-    <link rel="stylesheet" href="../../theme.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
-  </head>
-  <body>
-    <div id="canvas-container">
-      <canvas id="three-canvas"></canvas>
-    </div>
-    
-    <div class="form-progress" id="progress-bar"></div>
-    
-    <nav class="navbar">
-      <a href="javascript:history.back()" class="back-btn" aria-label="Go back">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="24"
-          height="24"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          class="lucide lucide-chevron-left"
-        >
-          <path d="m15 18-6-6 6-6" />
-        </svg>
-      </a>
-      <h2 class="navbar-title">Crop Planner AI</h2>
-      <button class="theme-toggle" aria-label="Toggle dark/light mode" style="background: rgba(255, 255, 255, 0.2); border: 1px solid rgba(255, 255, 255, 0.3); color: white;">
-        <i class="fas fa-sun sun-icon"></i>
-        <i class="fas fa-moon moon-icon"></i>
-        <span class="theme-text">Light</span>
-      </button>
-    </nav>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Crop Planner AI</title>
 
-    <div class="container">
-      <h1>🌿 Crop Planner AI</h1>
-      <p class="subtitle">Enter your farm's details to get an AI-powered crop planner with comprehensive growing guidelines.</p>
-      
-      <form id="crop-form">
-        <div class="form-grid">
-          <div class="form-group">
-            <label for="ph">Soil pH</label>
-            <input
-              type="number"
-              id="ph"
-              name="pH"
-              step="0.1"
-              min="0"
-              max="14"
-              required
-              placeholder="e.g., 6.8"
-            />
-            <div class="error-message">Please enter a valid pH value (0-14)</div>
-          </div>
+  <!-- Theme stylesheet (moved out of <style> import for reliability) -->
+  <link rel="stylesheet" href="/static/css/theme.css">
 
-          <div class="form-group">
-            <label for="temperature">Temperature (°C)</label>
-            <input
-              type="number"
-              id="temperature"
-              name="Temperature"
-              step="0.1"
-              min="-10"
-              max="50"
-              required
-              placeholder="e.g., 28.5"
-            />
-            <div class="error-message">Please enter a valid temperature</div>
-          </div>
+  <link rel="icon" type="image/png" href="/images/logo.png">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 
-          <div class="form-group">
-            <label for="rainfall">Rainfall (mm)</label>
-            <input
-              type="number"
-              id="rainfall"
-              name="Rainfall"
-              step="1"
-              min="0"
-              required
-              placeholder="e.g., 650"
-            />
-            <div class="error-message">Please enter a valid rainfall amount</div>
-          </div>
+  <style>
+    /* Core inline styles (kept most of your original CSS; minor adjustments) */
 
-          <div class="form-group">
-            <label for="soil-type">Soil Type</label>
-            <select id="soil-type" name="Soil_Type" required>
-              <option value="">Select soil type...</option>
-              <option value="Black">Black Soil</option>
-              <option value="Loamy">Loamy Soil</option>
-              <option value="Clay">Clay Soil</option>
-              <option value="Sandy">Sandy Soil</option>
-            </select>
-            <div class="error-message">Please select a soil type</div>
-          </div>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+    }
 
-          <div class="form-group">
-            <label for="season">Season</label>
-            <select id="season" name="Season" required>
-              <option value="">Select season...</option>
-              <option value="Monsoon">Monsoon</option>
-              <option value="Winter">Winter</option>
-              <option value="Summer">Summer</option>
-            </select>
-            <div class="error-message">Please select a season</div>
-          </div>
+    body {
+      font-family: "Poppins", sans-serif;
+      line-height: 1.6;
+      color: var(--text-primary, #333);
+      background-color: var(--bg-secondary, #f5f5f5);
+      min-height: 100vh;
+      padding-top: 80px;
+      position: relative;
+      overflow-x: hidden;
+    }
 
-          <div class="form-group">
-            <label for="market-demand">Market Demand</label>
-            <select id="market-demand" name="Market_Demand" required>
-              <option value="">Select demand level...</option>
-              <option value="High">High Demand</option>
-              <option value="Medium">Medium Demand</option>
-              <option value="Low">Low Demand</option>
-            </select>
-            <div class="error-message">Please select market demand level</div>
-          </div>
+    /* Canvas container (background three.js) */
+    #canvas-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1; /* keep behind content */
+      opacity: 0.3;
+      pointer-events: none; /* ensure it doesn't catch clicks */
+    }
 
-          <div class="form-group">
-            <label for="fertilizer">Fertilizer Used</label>
-            <select id="fertilizer" name="Fertilizer_Used" required>
-              <option value="">Select fertilizer...</option>
-              <option value="Urea+DAP">Urea + DAP</option>
-              <option value="NPK 10-26-26">NPK 10-26-26</option>
-              <option value="Single Super Phosphate">Single Super Phosphate</option>
-              <option value="None">No Fertilizer</option>
-            </select>
-            <div class="error-message">Please select a fertilizer option</div>
-          </div>
+    #three-canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
 
-          <div class="form-group">
-            <label for="pest-issue">Pest Issue</label>
-            <select id="pest-issue" name="Pest_Issue" required>
-              <option value="">Select pest status...</option>
-              <option value="None">No Pest Issues</option>
-              <option value="Bollworm">Bollworm</option>
-              <option value="Stem Borer">Stem Borer</option>
-              <option value="Aphids">Aphids</option>
-            </select>
-            <div class="error-message">Please select pest issue status</div>
-          </div>
+    .navbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      background-color: #2e7d32;
+      padding: 1rem 2rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+      z-index: 1000;
+      transition: all 0.3s ease;
+    }
 
-          <div class="form-group">
-            <label for="irrigation">Irrigation Method</label>
-            <select id="irrigation" name="Irrigation_Method" required>
-              <option value="">Select irrigation method...</option>
-              <option value="Drip">Drip Irrigation</option>
-              <option value="Canal">Canal Irrigation</option>
-              <option value="Rainfed">Rainfed</option>
-              <option value="Sprinkler">Sprinkler Irrigation</option>
-            </select>
-            <div class="error-message">Please select an irrigation method</div>
-          </div>
+    .back-btn {
+      color: white;
+      text-decoration: none;
+      padding: 0.5rem;
+      border-radius: 50%;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .back-btn:hover {
+      background: rgba(255, 255, 255, 0.08);
+      transform: translateX(-2px);
+    }
+
+    /* make navbar title visible on green background */
+    .navbar-title {
+      color: #fff;
+      font-size: 1.5rem;
+      font-weight: 600;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem;
+      background: var(--bg-primary, white);
+      border-radius: 20px;
+      box-shadow: 0 20px 40px var(--shadow-medium, rgba(0, 0, 0, 0.1));
+      margin-bottom: 2rem;
+      animation: slideUp 0.8s ease;
+    }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    h1 { text-align:center; margin-bottom:0.5rem; color:#333; font-size:2.5rem; font-weight:700; text-shadow:0 2px 4px rgba(0,0,0,0.1); }
+    .subtitle { text-align:center; margin-bottom:3rem; color:#666; font-size:1.1rem; font-weight:400; }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .form-group {
+      position: relative;
+      animation: fadeInUp 0.6s ease forwards;
+      animation-delay: calc(var(--delay, 0) * 0.1s);
+      opacity: 0;
+      transform: translateY(20px);
+    }
+
+    @keyframes fadeInUp { to { opacity:1; transform:translateY(0); } }
+
+    /* delays retained */
+    .form-group:nth-child(1) { --delay: 1; }
+    .form-group:nth-child(2) { --delay: 2; }
+    .form-group:nth-child(3) { --delay: 3; }
+    .form-group:nth-child(4) { --delay: 4; }
+    .form-group:nth-child(5) { --delay: 5; }
+    .form-group:nth-child(6) { --delay: 6; }
+    .form-group:nth-child(7) { --delay: 7; }
+    .form-group:nth-child(8) { --delay: 8; }
+    .form-group:nth-child(9) { --delay: 9; }
+
+    label { display:block; margin-bottom:0.5rem; font-weight:600; color:#333; font-size:0.95rem; transition:color 0.3s ease; }
+
+    input, select {
+      width:100%;
+      padding:1rem;
+      border:2px solid #e1e5e9;
+      border-radius:12px;
+      font-size:1rem;
+      background:var(--bg-primary, white);
+      color:var(--text-primary, #333);
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    input:focus, select:focus {
+      outline: none;
+      border-color: #2e7d32;
+      box-shadow: 0 0 0 4px rgba(46,125,50,0.1);
+      transform: translateY(-2px);
+    }
+
+    input::placeholder { color:var(--text-muted, #999); font-style:italic; }
+
+    .predict-btn {
+      width: 100%;
+      max-width: 400px;
+      margin: 2rem auto;
+      display:block;
+      padding:1.2rem 2rem;
+      background-color:#2e7d32;
+      color:white;
+      border:none;
+      border-radius:50px;
+      font-size:1.1rem;
+      font-weight:600;
+      cursor:pointer;
+      transition:all 0.3s ease;
+      box-shadow:0 4px 15px rgba(46,125,50,0.3);
+      text-transform:uppercase;
+      letter-spacing:0.5px;
+    }
+
+    .predict-btn:hover { background-color:#1b5e20; transform:translateY(-2px); box-shadow:0 8px 25px rgba(46,125,50,0.4); }
+    .predict-btn:active { transform:translateY(0); }
+
+    #result-container { background:#f1f8e9; border-radius:16px; padding:2rem; margin-top:2rem; border:1px solid rgba(46,125,50,0.1); animation:slideIn 0.5s ease; }
+    @keyframes slideIn { from { opacity:0; transform:scale(0.95); } to { opacity:1; transform:scale(1); } }
+
+    .hidden { display:none; }
+
+    #result-container h2 { color:#333; font-size:1.8rem; margin-bottom:1rem; text-align:center; }
+    #result-text { font-size:1.3rem; font-weight:600; color:#2e7d32; text-align:center; margin-bottom:2rem; padding:1rem; background:white; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,0.1); }
+
+    #guide-title { color:#333; font-size:1.5rem; margin-bottom:1.5rem; text-align:center; font-weight:600; }
+
+    .guide-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:1.5rem; }
+
+    .guide-item { background:var(--bg-primary, white); border-radius:16px; padding:1.5rem; box-shadow:0 4px 12px var(--shadow-light, rgba(0,0,0,0.08)); transition:all 0.3s ease; border:1px solid rgba(46,125,50,0.1); position:relative; overflow:hidden; }
+    .guide-item::before { content:""; position:absolute; top:0; left:0; right:0; height:4px; background:#2e7d32; transform:translateX(-100%); transition:transform 0.3s ease; }
+    .guide-item:hover { transform:translateY(-4px); box-shadow:0 8px 25px rgba(0,0,0,0.12); }
+    .guide-item:hover::before { transform:translateX(0); }
+
+    .guide-item h4 { color:var(--text-primary, #333); font-size:1.1rem; margin-bottom:1rem; font-weight:600; }
+    .guide-item p { color:var(--text-secondary, #666); line-height:1.6; font-size:0.95rem; }
+
+    .loading { display:inline-block; width:20px; height:20px; border:3px solid rgba(255,255,255,0.3); border-radius:50%; border-top-color:white; animation:spin 1s ease-in-out infinite; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+
+    .form-progress { position: fixed; top: 80px; left: 0; height: 3px; background: #2e7d32; transition: width 0.3s ease; z-index: 999; width: 0%; }
+
+    @media (max-width: 768px) {
+      .container { margin:1rem; padding:1.5rem; border-radius:16px; }
+      .form-grid { grid-template-columns: 1fr; gap:1.25rem; }
+      h1 { font-size:2rem; }
+      .navbar { padding:1rem; }
+      .navbar-title { font-size:1.2rem; }
+    }
+
+    /* Validation styles */
+    .form-group.error input, .form-group.error select { border-color: #e74c3c; box-shadow: 0 0 0 4px rgba(231,76,60,0.1); }
+    .form-group.success input, .form-group.success select { border-color: #27ae60; }
+    .error-message { color:#e74c3c; font-size:0.85rem; margin-top:0.5rem; display:none; }
+    .form-group.error .error-message { display:block; }
+  </style>
+</head>
+<body>
+  <div id="canvas-container">
+    <canvas id="three-canvas" aria-hidden="true"></canvas>
+  </div>
+
+  <div class="form-progress" id="progress-bar" style="width:0"></div>
+
+  <nav class="navbar" role="navigation" aria-label="Main navigation">
+    <a href="javascript:history.back()" class="back-btn" aria-label="Go back">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-left">
+        <path d="m15 18-6-6 6-6"></path>
+      </svg>
+    </a>
+
+    <h2 class="navbar-title">Crop Planner AI</h2>
+
+    <button class="theme-toggle" type="button" aria-label="Toggle dark or light mode" style="margin-left:auto; background: rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.18); color:white;">
+      <i class="fas fa-sun sun-icon" aria-hidden="true"></i>
+      <i class="fas fa-moon moon-icon" aria-hidden="true" style="display:none;"></i>
+      <span class="theme-text">Light</span>
+    </button>
+  </nav>
+
+  <main class="container" role="main">
+    <h1>🌿 Crop Planner AI</h1>
+    <p class="subtitle">Enter your farm's details to get an AI-powered crop planner with comprehensive growing guidelines.</p>
+
+    <form id="crop-form" novalidate>
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="ph">Soil pH</label>
+          <input type="number" id="ph" name="pH" step="0.1" min="0" max="14" required placeholder="e.g., 6.8" />
+          <div class="error-message">Please enter a valid pH value (0-14)</div>
         </div>
 
-        <button type="submit" class="predict-btn" id="submit-btn">
-          Get Full Farming Plan
-        </button>
-      </form>
+        <div class="form-group">
+          <label for="temperature">Temperature (°C)</label>
+          <input type="number" id="temperature" name="Temperature" step="0.1" min="-10" max="50" required placeholder="e.g., 28.5" />
+          <div class="error-message">Please enter a valid temperature</div>
+        </div>
 
-      <div id="result-container" class="hidden">
-        <h2>🎯 Recommended Crop:</h2>
-        <p id="result-text">...</p>
-        
-        <div id="guide-container">
-          <h3 id="guide-title"></h3>
-          <div class="guide-grid">
-            <div class="guide-item">
-              <h4>🗓️ Timeline (Plant & Harvest)</h4>
-              <p id="guide-timeline">Optimal planting and harvesting schedule for maximum yield</p>
-            </div>
-            
-            <div class="guide-item">
-              <h4>🌱 How to Plant</h4>
-              <p id="guide-how-to-plant">Step-by-step planting guidelines and best practices</p>
-            </div>
-            
-            <div class="guide-item">
-              <h4>💊 Fertilizer Plan</h4>
-              <p id="guide-fertilizer">Customized fertilization schedule and recommendations</p>
-            </div>
-            
-            <div class="guide-item">
-              <h4>🌧️ Ideal Rainfall</h4>
-              <p id="guide-ideal-rainfall">Water requirements and irrigation guidelines</p>
-            </div>
-            
-            <div class="guide-item">
-              <h4>📦 Post-Harvest Plan</h4>
-              <p id="guide-post-harvest">Storage, processing, and marketing strategies</p>
-            </div>
+        <div class="form-group">
+          <label for="rainfall">Rainfall (mm)</label>
+          <input type="number" id="rainfall" name="Rainfall" step="1" min="0" required placeholder="e.g., 650" />
+          <div class="error-message">Please enter a valid rainfall amount</div>
+        </div>
+
+        <div class="form-group">
+          <label for="soil-type">Soil Type</label>
+          <select id="soil-type" name="Soil_Type" required>
+            <option value="">Select soil type...</option>
+            <option value="Black">Black Soil</option>
+            <option value="Loamy">Loamy Soil</option>
+            <option value="Clay">Clay Soil</option>
+            <option value="Sandy">Sandy Soil</option>
+          </select>
+          <div class="error-message">Please select a soil type</div>
+        </div>
+
+        <div class="form-group">
+          <label for="season">Season</label>
+          <select id="season" name="Season" required>
+            <option value="">Select season...</option>
+            <option value="Monsoon">Monsoon</option>
+            <option value="Winter">Winter</option>
+            <option value="Summer">Summer</option>
+          </select>
+          <div class="error-message">Please select a season</div>
+        </div>
+
+        <div class="form-group">
+          <label for="market-demand">Market Demand</label>
+          <select id="market-demand" name="Market_Demand" required>
+            <option value="">Select demand level...</option>
+            <option value="High">High Demand</option>
+            <option value="Medium">Medium Demand</option>
+            <option value="Low">Low Demand</option>
+          </select>
+          <div class="error-message">Please select market demand level</div>
+        </div>
+
+        <div class="form-group">
+          <label for="fertilizer">Fertilizer Used</label>
+          <select id="fertilizer" name="Fertilizer_Used" required>
+            <option value="">Select fertilizer...</option>
+            <option value="Urea+DAP">Urea + DAP</option>
+            <option value="NPK 10-26-26">NPK 10-26-26</option>
+            <option value="Single Super Phosphate">Single Super Phosphate</option>
+            <option value="None">No Fertilizer</option>
+          </select>
+          <div class="error-message">Please select a fertilizer option</div>
+        </div>
+
+        <div class="form-group">
+          <label for="pest-issue">Pest Issue</label>
+          <select id="pest-issue" name="Pest_Issue" required>
+            <option value="">Select pest status...</option>
+            <option value="None">No Pest Issues</option>
+            <option value="Bollworm">Bollworm</option>
+            <option value="Stem Borer">Stem Borer</option>
+            <option value="Aphids">Aphids</option>
+          </select>
+          <div class="error-message">Please select pest issue status</div>
+        </div>
+
+        <div class="form-group">
+          <label for="irrigation">Irrigation Method</label>
+          <select id="irrigation" name="Irrigation_Method" required>
+            <option value="">Select irrigation method...</option>
+            <option value="Drip">Drip Irrigation</option>
+            <option value="Canal">Canal Irrigation</option>
+            <option value="Rainfed">Rainfed</option>
+            <option value="Sprinkler">Sprinkler Irrigation</option>
+          </select>
+          <div class="error-message">Please select an irrigation method</div>
+        </div>
+      </div>
+
+      <button type="submit" class="predict-btn" id="submit-btn">Get Full Farming Plan</button>
+    </form>
+
+    <div id="result-container" class="hidden" aria-live="polite">
+      <h2>🎯 Recommended Crop:</h2>
+      <p id="result-text" aria-live="polite">...</p>
+
+      <div id="guide-container" class="hidden">
+        <h3 id="guide-title"></h3>
+        <div class="guide-grid">
+          <div class="guide-item">
+            <h4>🗓️ Timeline (Plant & Harvest)</h4>
+            <p id="guide-timeline">Optimal planting and harvesting schedule for maximum yield</p>
+          </div>
+
+          <div class="guide-item">
+            <h4>🌱 How to Plant</h4>
+            <p id="guide-how-to-plant">Step-by-step planting guidelines and best practices</p>
+          </div>
+
+          <div class="guide-item">
+            <h4>💊 Fertilizer Plan</h4>
+            <p id="guide-fertilizer">Customized fertilization schedule and recommendations</p>
+          </div>
+
+          <div class="guide-item">
+            <h4>🌧️ Ideal Rainfall</h4>
+            <p id="guide-ideal-rainfall">Water requirements and irrigation guidelines</p>
+          </div>
+
+          <div class="guide-item">
+            <h4>📦 Post-Harvest Plan</h4>
+            <p id="guide-post-harvest">Storage, processing, and marketing strategies</p>
           </div>
         </div>
       </div>
     </div>
+  </main>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="../static/script.js"></script>
-    <script src="../../theme.js"></script>
-    <style>
-      .site-footer {background: linear-gradient(135deg,#2e7d32,#66bb6a); color:#fff; margin-top:auto; padding: 2rem 1.25rem;}
-      .site-footer .footer-inner {max-width:1200px;margin:0 auto; display:grid; grid-template-columns: repeat(auto-fit, minmax(220px,1fr)); gap:1.5rem; align-items:flex-start;}
-      .footer-brand {display:flex;flex-direction:column;gap:.5rem}
-      .footer-logo {width:48px;height:48px;border-radius:8px;object-fit:cover;background:#fff;padding:4px}
-      .site-footer h3,.site-footer h4{margin:0 0 .5rem 0}
-      .site-footer p {margin:0;opacity:.9}
-      .site-footer ul{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:.4rem}
-      .site-footer a{color:#fff;text-decoration:none;opacity:.9;transition:opacity .2s}
-      .site-footer a:hover{opacity:1;text-decoration:underline}
-      .footer-bottom{max-width:1200px;margin:1rem auto 0; padding-top:1rem; border-top:1px solid rgba(255,255,255,.25); text-align:center; font-size:.9rem; opacity:.9}
-    </style>
-    <footer class="site-footer">
-      <div class="footer-inner">
-        <div class="footer-brand">
-          <img src="/images/logo.png" alt="AgriTech logo" class="footer-logo">
-          <h3>AgriTech</h3>
-          <p>Empowering India's Farming Future</p>
-        </div>
-        <div class="footer-links">
-          <h4>Quick Links</h4>
-          <ul>
-            <li><a href="/index.html">Home</a></li>
-            <li><a href="/main.html">Dashboard</a></li>
-            <li><a href="/feed-back.html">Feedback</a></li>
-            <li><a href="/chat.html">AI Assistant</a></li>
-          </ul>
-        </div>
-        <div class="footer-links">
-          <h4>Tools</h4>
-          <ul>
-            <li><a href="/Crop%20Recommendation/templates/index.html">Crop Recommendation</a></li>
-            <li><a href="/Crop%20Yield%20Prediction/crop_yield_app/templates/index.html">Yield Prediction</a></li>
-            <li><a href="/Disease%20prediction/template/index.html">Disease Detector</a></li>
-            <li><a href="/Crop_Planning/templates/cropplan.html">Crop Planner</a></li>
-          </ul>
-        </div>
-      </div>
-      <div class="footer-bottom">© 2025 AgriTech • Made for farmers</div>
-    </footer>
-  </body>
+  <!-- Three.js (kept) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const form = document.getElementById("crop-form");
+      const submitBtn = document.getElementById("submit-btn");
+      const progressBar = document.getElementById("progress-bar");
+      const resultContainer = document.getElementById("result-container");
+      const resultText = document.getElementById("result-text");
+      const guideContainer = document.getElementById("guide-container");
+      const guideTitle = document.getElementById("guide-title");
+      const guideTimeline = document.getElementById("guide-timeline");
+      const guideHowToPlant = document.getElementById("guide-how-to-plant");
+      const guideFertilizer = document.getElementById("guide-fertilizer");
+      const guideIdealRainfall = document.getElementById("guide-ideal-rainfall");
+      const guidePostHarvest = document.getElementById("guide-post-harvest");
+
+      // --- Progress Bar ---
+      function updateProgress() {
+        const inputs = form.querySelectorAll("input[required], select[required]");
+        const filled = Array.from(inputs).filter(i => i.value.trim() !== "").length;
+        const progress = (filled / inputs.length) * 100;
+        progressBar.style.width = progress + "%";
+      }
+
+      // --- Validation helpers ---
+      function validateField(field) {
+        const formGroup = field.closest(".form-group");
+        const isFilled = field.value.trim() !== "";
+        const isValid = isFilled && field.checkValidity();
+
+        formGroup.classList.remove("error", "success");
+        if (isFilled) {
+          formGroup.classList.add(isValid ? "success" : "error");
+        } else {
+          // neither success nor explicit error when empty (let HTML required handle it on submit)
+        }
+        return isValid;
+      }
+
+      form.querySelectorAll("input, select").forEach((field) => {
+        field.addEventListener("blur", () => validateField(field));
+        field.addEventListener("input", () => {
+          if (field.closest(".form-group").classList.contains("error")) {
+            validateField(field);
+          }
+        });
+      });
+
+      form.addEventListener("input", updateProgress);
+      form.addEventListener("change", updateProgress);
+      updateProgress();
+
+      // Robust parse for FormData -> JS object
+      function formDataToObject(f) {
+        const fd = new FormData(f);
+        const obj = {};
+        for (const [key, value] of fd.entries()) {
+          const el = f.querySelector(`[name="${key}"]`);
+          // if element is number type, try parse
+          if (el && el.type === "number") {
+            const n = parseFloat(value);
+            obj[key] = Number.isFinite(n) ? n : null;
+          } else {
+            obj[key] = value;
+          }
+        }
+        return obj;
+      }
+
+      // --- Submit handler with API call ---
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const requiredFields = form.querySelectorAll("input[required], select[required]");
+        let allValid = true;
+        requiredFields.forEach(f => {
+          if (!validateField(f)) allValid = false;
+        });
+        if (!allValid) {
+          const firstError = form.querySelector(".form-group.error");
+          if (firstError) firstError.scrollIntoView({ behavior: "smooth", block: "center" });
+          return;
+        }
+
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span class="loading" aria-hidden="true"></span> Analyzing Your Farm...';
+        displayLoading();
+
+        const data = formDataToObject(form);
+
+        try {
+          const response = await fetch("/plan_crop", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data)
+          });
+
+          if (!response.ok) {
+            // try to parse a JSON error; fall back to text
+            let errMsg = `Prediction failed (status ${response.status})`;
+            try {
+              const jsonErr = await response.json();
+              if (jsonErr && jsonErr.error) errMsg = jsonErr.error;
+            } catch (parseErr) {
+              try {
+                const txt = await response.text();
+                if (txt) errMsg = txt;
+              } catch (_) {}
+            }
+            throw new Error(errMsg);
+          }
+
+          // parse JSON result (safe)
+          const result = await response.json();
+
+          if (result && result.crop && result.guide) {
+            displayResultAndGuide(result.crop, result.guide);
+          } else {
+            displayError("Failed to get a valid response from the server.");
+          }
+        } catch (err) {
+          console.error("Error connecting to server:", err);
+          displayError(typeof err === "string" ? err : (err.message || "Could not connect to the AI service."));
+        } finally {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = "Get Full Farming Plan";
+        }
+      });
+
+      function displayLoading() {
+        resultContainer.classList.remove("hidden");
+        resultText.textContent = "Curating your personalized crop guide...";
+        guideContainer.classList.add("hidden");
+      }
+
+      function displayError(message) {
+        resultContainer.classList.remove("hidden");
+        resultText.textContent = message;
+        guideContainer.classList.add("hidden");
+      }
+
+      function formatAIResponse(text) {
+        if (!text) return "";
+        let formatted = text.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
+        formatted = formatted.replace(/\n/g, "<br>");
+        return formatted;
+      }
+
+      function displayResultAndGuide(cropName, guide) {
+        resultContainer.classList.remove("hidden");
+        resultText.textContent = cropName || "Recommendation";
+
+        guideTitle.textContent = guide.title || "Crop Guide";
+        guideTimeline.innerHTML = formatAIResponse(guide.timeline || "");
+        guideHowToPlant.innerHTML = formatAIResponse(guide.how_to_plant || "");
+        guideFertilizer.innerHTML = formatAIResponse(guide.fertilizer || "");
+        guideIdealRainfall.innerHTML = formatAIResponse(guide.ideal_rainfall || "");
+        guidePostHarvest.innerHTML = formatAIResponse(guide.post_harvest || "");
+
+        guideContainer.classList.remove("hidden");
+        resultContainer.scrollIntoView({ behavior: "smooth" });
+      }
+
+      // --- THREE.js background (kept, with improvements) ---
+      let scene, camera, renderer, particles;
+      function initThreeJS() {
+        scene = new THREE.Scene();
+        camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.z = 50;
+
+        const canvas = document.getElementById("three-canvas");
+        renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setClearColor(0x000000, 0);
+
+        createParticles();
+        animate();
+        window.addEventListener("resize", onWindowResize);
+      }
+
+      function createParticles() {
+        const geometry = new THREE.BufferGeometry();
+        const particleCount = 120;
+        const positions = new Float32Array(particleCount * 3);
+        const colors = new Float32Array(particleCount * 3);
+        const greenColor = new THREE.Color(0x2e7d32);
+        const lightGreenColor = new THREE.Color(0x4caf50);
+
+        for (let i = 0; i < particleCount; i++) {
+          const i3 = i * 3;
+          positions[i3] = (Math.random() - 0.5) * 200;
+          positions[i3 + 1] = (Math.random() - 0.5) * 200;
+          positions[i3 + 2] = (Math.random() - 0.5) * 100;
+          const color = Math.random() > 0.5 ? greenColor : lightGreenColor;
+          colors[i3] = color.r;
+          colors[i3 + 1] = color.g;
+          colors[i3 + 2] = color.b;
+        }
+
+        geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+        geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
+        const material = new THREE.PointsMaterial({
+          size: 2,
+          vertexColors: true,
+          transparent: true,
+          opacity: 0.6,
+          blending: THREE.AdditiveBlending
+        });
+        particles = new THREE.Points(geometry, material);
+        scene.add(particles);
+      }
+
+      function animate() {
+        requestAnimationFrame(animate);
+        if (particles) {
+          particles.rotation.x += 0.001;
+          particles.rotation.y += 0.002;
+        }
+        renderer.render(scene, camera);
+      }
+
+      function onWindowResize() {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+      }
+
+      try {
+        initThreeJS();
+      } catch (err) {
+        console.warn("three.js failed to initialize:", err);
+        // silently ignore so page still works
+      }
+
+      // --- Navbar hide on scroll ---
+      let lastScrollTop = 0;
+      const navbar = document.querySelector(".navbar");
+      window.addEventListener("scroll", () => {
+        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+        if (scrollTop > lastScrollTop && scrollTop > 100) {
+          navbar.style.transform = "translateY(-100%)";
+        } else {
+          navbar.style.transform = "translateY(0)";
+        }
+        lastScrollTop = scrollTop;
+      });
+
+      // Small theme-toggle stub (so it doesn't do nothing)
+      const themeToggle = document.querySelector(".theme-toggle");
+      themeToggle.addEventListener("click", () => {
+        // toggles a "dark" class on body; let your theme.js expand this
+        const isDark = document.documentElement.classList.toggle("dark");
+        themeToggle.querySelector(".theme-text").textContent = isDark ? "Dark" : "Light";
+        const sun = themeToggle.querySelector(".sun-icon");
+        const moon = themeToggle.querySelector(".moon-icon");
+        if (isDark) { sun.style.display = "none"; moon.style.display = "inline-block"; }
+        else { sun.style.display = "inline-block"; moon.style.display = "none"; }
+      });
+    });
+  </script>
+
+  <!-- your theme script (kept) -->
+  <script src="../../theme.js"></script>
+</body>
 </html>
