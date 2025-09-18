@@ -1,110 +1,110 @@
-from flask import Flask, request, jsonify
-import google.generativeai as genai
-import traceback
 import os
-import re
-from flask_cors import CORS
-from dotenv import load_dotenv
+import google.generativeai as genai
+from flask import Flask, render_template, request, jsonify, redirect, url_for
 
-# Load environment variables from a .env file
-load_dotenv()
+# --- Configuration ---
+# Your Gemini API key
+# Note: In a real application, you should use environment variables for keys.
+GEMINI_API_KEY = "AIzaSyCh-1osIi4tMAAM0pudn8CpegWKg1wMxMU"
+genai.configure(api_key=GEMINI_API_KEY)
 
-app = Flask(__name__)
-# Allow requests from a specific origin for development
-CORS(app, resources={r"/*": {"origins": "http://127.0.0.1:5500"}})
+# Initialize Flask app
+app = Flask(__name__, static_url_path='/static', static_folder='static')
 
-# -------------------------------
-# Input validation and sanitization
-# -------------------------------
-def sanitize_value(value):
-    """Sanitize a single string value to prevent injection attacks."""
-    if not isinstance(value, str):
-        return value
-    # Simple, direct sanitization for string values
-    return re.sub(r'[\n\r\t]', ' ', value)
+# --- Routes for Serving HTML Pages ---
+# Render the index.html page
+@app.route('/')
+def index():
+    return render_template('index.html')
 
-def validate_input(data):
-    """Validate input data structure and content."""
-    if not data or not isinstance(data, dict):
-        return False, "Invalid or no data provided. Expected a JSON object."
-    return True, "Valid input"
+# Render the about.html page
+@app.route('/about.html')
+def about():
+    return render_template('about.html')
 
-# -------------------------------
-# Initialize Gemini API
-# -------------------------------
-API_KEY = os.environ.get('GEMINI_API_KEY')
-if not API_KEY:
-    raise ValueError("GEMINI_API_KEY not found in environment variables.")
+# Render the chat.html page
+@app.route('/chat.html')
+def chat():
+    return render_template('chat.html')
 
-MODEL_ID = "gemini-1.5-flash"
+# Render the cropCalendar.html page
+@app.route('/cropCalendar.html')
+def crop_calendar():
+    return render_template('cropCalendar.html')
 
-# Configure Gemini with the API key from environment variables
-genai.configure(api_key=API_KEY)
+# Render the feed-back.html page
+@app.route('/feed-back.html')
+def feedback():
+    return render_template('feed-back.html')
 
-# -------------------------------
-# API Endpoints
-# -------------------------------
-@app.route('/api/firebase-config')
-def get_firebase_config():
-    """Secure endpoint to provide Firebase configuration to client"""
-    return jsonify({
-        'apiKey': os.environ.get('FIREBASE_API_KEY'),
-        'authDomain': os.environ.get('FIREBASE_AUTH_DOMAIN'),
-        'projectId': os.environ.get('FIREBASE_PROJECT_ID'),
-        'storageBucket': os.environ.get('FIREBASE_STORAGE_BUCKET'),
-        'messagingSenderId': os.environ.get('FIREBASE_MESSAGING_SENDER_ID'),
-        'appId': os.environ.get('FIREBASE_APP_ID'),
-        'measurementId': os.environ.get('FIREBASE_MEASUREMENT_ID')
-    })
+# Render the main.html (Dashboard) page
+@app.route('/main.html')
+def main():
+    return render_template('main.html')
 
-@app.route('/process-loan', methods=['POST'])
-def process_loan():
+# Render the organic.html page
+@app.route('/organic.html')
+def organic():
+    return render_template('organic.html')
+
+# Render the plantation.html page
+@app.route('/plantation.html')
+def plantation():
+    return render_template('plantation.html')
+
+# Render the terms-and-service.html page
+@app.route('/terms-and-service.html')
+def terms_and_service():
+    return render_template('terms-and-service.html')
+
+# Render the weather.html page
+@app.route('/weather.html')
+def weather():
+    return render_template('weather.html')
+
+# Redirects for sub-directories to the main app
+# These routes assume that the referenced tools are also part of this Flask app
+@app.route('/Crop Recommendation/templates/index.html')
+def crop_recommendation_index():
+    # Placeholder: In a real scenario, you'd render this template
+    return "This route is a placeholder. You need to provide the actual template content."
+
+@app.route('/Crop Yield Prediction/crop_yield_app/templates/index.html')
+def yield_prediction_index():
+    return "This route is a placeholder."
+
+@app.route('/Disease prediction/template/index.html')
+def disease_prediction_index():
+    return "This route is a placeholder."
+
+@app.route('/Crop_Planning/templates/cropplan.html')
+def crop_planning():
+    return "This route is a placeholder."
+    
+@app.route('/Crop_Prices_Tracker/templates/crop_price_tracker.html')
+def crop_price_tracker():
+    return "This route is a placeholder."
+
+
+# --- API Endpoint for Gemini Chatbot ---
+@app.route('/api/gemini-chat', methods=['POST'])
+def gemini_chat():
+    """Handles chat requests by sending a message to the Gemini API."""
+    user_message = request.json.get('message')
+    if not user_message:
+        return jsonify({'error': 'No message provided'}), 400
+
     try:
-        json_data = request.get_json()
-        
-        is_valid, validation_message = validate_input(json_data)
-        if not is_valid:
-            return jsonify({"status": "error", "message": validation_message}), 400
-
-        sanitized_data = {key: sanitize_value(value) for key, value in json_data.items()}
-
-        prompt = f"""
-You are a financial loan eligibility advisor specializing in agricultural loans for farmers in India.
-You will be provided with a JSON object that contains information about a farmer's loan application.
-The fields in this JSON will vary depending on the loan type (e.g., Crop Cultivation, Farm Equipment, Water Resources, Land Purchase).
-
-Focus only on loan schemes and eligibility criteria followed by:
-1. Indian nationalized banks (SBI, Bank of Baroda, etc.)
-2. Private sector Indian banks (ICICI, HDFC, etc.)
-3. Regional Rural Banks (RRBs)
-4. Cooperative Banks
-5. NABARD & government schemes
-
-JSON Data:
-{sanitized_data}
-
-Your task:
-1. Identify the loan type and key fields.
-2. Assess eligibility and highlight strengths & challenges.
-3. Point out missing critical data.
-4. Give actionable suggestions to improve eligibility.
-5. Suggest relevant government schemes/subsidies.
-6. Respond in **Markdown format** with sections:
-   - Loan Type
-   - Eligibility Status
-   - Loan Range
-   - Improvements
-   - Schemes
-"""
-        model = genai.GenerativeModel(MODEL_ID)
-        response = model.generate_content(prompt)
-        reply = response.text if response and response.text else "No response from model."
-        return jsonify({"status": "success", "message": reply}), 200
-
+        model = genai.GenerativeModel('gemini-pro')
+        response = model.generate_content(user_message)
+        return jsonify({'response': response.text})
     except Exception as e:
-        print(f"Unexpected Error: {e}")
-        traceback.print_exc()
-        return jsonify({"status": "error", "message": "An internal server error occurred."}), 500
+        print(f"Error calling Gemini API: {e}")
+        return jsonify({'error': 'Failed to get a response from the AI. Please try again.'}), 500
 
+
+# Run the app
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5500, debug=True)
+    # Set debug=True for development to see errors.
+    # Set to False for production environments.
+    app.run(debug=True)
