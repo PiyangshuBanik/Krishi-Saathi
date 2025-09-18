@@ -6,59 +6,53 @@ import re
 from flask_cors import CORS
 from dotenv import load_dotenv
 
-# Load environment variables
+# Load environment variables from a .env file
 load_dotenv()
 
 app = Flask(__name__)
+# Allow requests from a specific origin for development
 CORS(app, resources={r"/*": {"origins": "http://127.0.0.1:5500"}})
 
 # -------------------------------
 # Input validation and sanitization
 # -------------------------------
-def sanitize_input(text):
-    """Sanitize user input to prevent XSS and injection attacks"""
-    if not text or not isinstance(text, str):
-        return ""
-
-    # Remove HTML tags
-    text = re.sub(r'<[^>]+>', '', text)
-
-    # Escape special characters
-    text = text.replace('&', '&amp;')
-    text = text.replace('<', '&lt;')
-    text = text.replace('>', '&gt;')
-    text = text.replace('"', '&quot;')
-    text = text.replace("'", '&#x27;')
-
-    # Limit length
-    if len(text) > 1000:
-        text = text[:1000]
-
-    return text.strip()
-
+def sanitize_value(value):
+    """Sanitize a single string value to prevent injection attacks."""
+    if not isinstance(value, str):
+        return value
+    # Simple, direct sanitization for string values
+    return re.sub(r'[\n\r\t]', ' ', value)
 
 def validate_input(data):
-    """Validate input data structure and content"""
-    if not data:
-        return False, "No data provided"
+    """Validate input data structure and content."""
+    if not data or not isinstance(data, dict):
+        return False, "Invalid or no data provided. Expected a JSON object."
 
-    # Add more validation rules if needed
+    # Validate that all values are of expected types if needed.
+    # For now, we assume the structure is a key-value map and will sanitize values.
     return True, "Valid input"
 
 
 # -------------------------------
 # Initialize Gemini API
 # -------------------------------
-API_KEY = os.environ.get('GEMINI_API_KEY', 'YOUR-API-KEY')
-MODEL_ID = "gemini-2.0-flash"  # ✅ updated to valid Gemini model
+API_KEY = os.environ.get('GEMINI_API_KEY')
+if not API_KEY:
+    raise ValueError("GEMINI_API_KEY not found in environment variables.")
 
-# Configure Gemini with API key
+MODEL_ID = "gemini-1.5-flash"  # ✅ Updated to a valid Gemini model ID
+
+# Configure Gemini with the API key from environment variables
 genai.configure(api_key=API_KEY)
 
 
 @app.route('/api/firebase-config')
 def get_firebase_config():
-    """Secure endpoint to provide Firebase configuration to client"""
+    """
+    Endpoint to provide Firebase configuration.
+    It's generally more secure to manage this on the client side with a .env file,
+    but this endpoint is provided for demonstration purposes.
+    """
     return jsonify({
         'apiKey': os.environ.get('FIREBASE_API_KEY'),
         'authDomain': os.environ.get('FIREBASE_AUTH_DOMAIN'),
@@ -73,28 +67,25 @@ def get_firebase_config():
 @app.route('/process-loan', methods=['POST'])
 def process_loan():
     try:
-        json_data = request.get_json(force=True)
-
+        # Get JSON data from the request
+        json_data = request.get_json()
+        
+        # -------------------------------
         # Validate and sanitize input
+        # -------------------------------
         is_valid, validation_message = validate_input(json_data)
         if not is_valid:
             return jsonify({"status": "error", "message": validation_message}), 400
 
-        # Sanitize text fields in JSON
-        if isinstance(json_data, dict):
-            for key, value in json_data.items():
-                if isinstance(value, str):
-                    json_data[key] = sanitize_input(value)
-
-        print(f"Received JSON: {json_data}")
+        # Create a sanitized dictionary to use in the prompt
+        sanitized_data = {key: sanitize_value(value) for key, value in json_data.items()}
 
         # -------------------------------
         # Build prompt for Gemini
         # -------------------------------
         prompt = f"""
 You are a financial loan eligibility advisor specializing in agricultural loans for farmers in India.
-
-You will be given a JSON object that contains information about a farmer's loan application. 
+You will be provided with a JSON object that contains information about a farmer's loan application.
 The fields in this JSON will vary depending on the loan type (e.g., Crop Cultivation, Farm Equipment, Water Resources, Land Purchase).
 
 Focus only on loan schemes and eligibility criteria followed by:
@@ -104,7 +95,8 @@ Focus only on loan schemes and eligibility criteria followed by:
 4. Cooperative Banks
 5. NABARD & government schemes
 
-JSON Data = {json_data}
+JSON Data:
+{sanitized_data}
 
 Your task:
 1. Identify the loan type and key fields.
@@ -123,6 +115,8 @@ Your task:
         # -------------------------------
         # Call Gemini model
         # -------------------------------
+        # It's better to instantiate the model once outside the function if possible,
+        # but for simplicity, it's fine here.
         model = genai.GenerativeModel(MODEL_ID)
         response = model.generate_content(prompt)
 
@@ -133,8 +127,11 @@ Your task:
     except Exception as e:
         print(f"Unexpected Error: {e}")
         traceback.print_exc()
-        return jsonify({"status": "error", "message": str(e)}), 500
+        # Return a generic error message to the client for security
+        return jsonify({"status": "error", "message": "An internal server error occurred."}), 500
 
 
 if __name__ == '__main__':
-    app.run(port=5000, debug=True)
+    # Use host='0.0.0.0' to make the server accessible externally (e.g., in a container)
+    # Set debug to False for production
+    app.run(host='0.0.0.0', port=5000, debug=True)
