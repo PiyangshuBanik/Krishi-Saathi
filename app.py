@@ -11,47 +11,59 @@ load_dotenv()
 
 app = Flask(__name__)
 # Allow requests from a specific origin for development
+# This prevents CORS errors when the client-side code is on a different server (like a local file server).
 CORS(app, resources={r"/*": {"origins": "http://127.0.0.1:5500"}})
 
-# -------------------------------
+# ------------------------------------
 # Input validation and sanitization
-# -------------------------------
+# ------------------------------------
 def sanitize_value(value):
-    """Sanitize a single string value to prevent injection attacks."""
+    """
+    Sanitize a single string value to prevent prompt injection attacks.
+    Removes newline and carriage return characters which can be used to
+    manipulate the prompt's structure.
+    """
     if not isinstance(value, str):
         return value
-    # Simple, direct sanitization for string values
     return re.sub(r'[\n\r\t]', ' ', value)
 
 def validate_input(data):
-    """Validate input data structure and content."""
+    """
+    Validate the input data structure.
+    Ensures the data is a non-empty dictionary.
+    """
     if not data or not isinstance(data, dict):
         return False, "Invalid or no data provided. Expected a JSON object."
-
-    # Validate that all values are of expected types if needed.
-    # For now, we assume the structure is a key-value map and will sanitize values.
     return True, "Valid input"
 
-
-# -------------------------------
+# ------------------------------------
 # Initialize Gemini API
-# -------------------------------
+# ------------------------------------
+# Retrieve API key from environment variables.
+# This is a critical security practice to avoid hardcoding secrets.
 API_KEY = os.environ.get('GEMINI_API_KEY')
 if not API_KEY:
-    raise ValueError("GEMINI_API_KEY not found in environment variables.")
+    # Raise a clear error if the key is not found, preventing the app from running
+    # in an insecure state.
+    raise ValueError("GEMINI_API_KEY not found in environment variables. "
+                     "Please create a .env file and add it.")
 
-MODEL_ID = "gemini-1.5-flash"  # ✅ Updated to a valid Gemini model ID
+# Use a valid Gemini model ID.
+MODEL_ID = "gemini-1.5-flash"
 
-# Configure Gemini with the API key from environment variables
+# Configure the Gemini API with the retrieved key.
 genai.configure(api_key=API_KEY)
 
+# ------------------------------------
+# API Endpoints
+# ------------------------------------
 
 @app.route('/api/firebase-config')
 def get_firebase_config():
     """
-    Endpoint to provide Firebase configuration.
-    It's generally more secure to manage this on the client side with a .env file,
-    but this endpoint is provided for demonstration purposes.
+    Secure endpoint to provide Firebase configuration to the client.
+    This is useful for passing credentials without exposing them in the
+    client-side source code.
     """
     return jsonify({
         'apiKey': os.environ.get('FIREBASE_API_KEY'),
@@ -66,23 +78,26 @@ def get_firebase_config():
 
 @app.route('/process-loan', methods=['POST'])
 def process_loan():
+    """
+    Main endpoint for processing loan applications.
+    It takes a JSON payload, sanitizes it, and sends it to the Gemini API
+    to get an eligibility assessment.
+    """
     try:
-        # Get JSON data from the request
+        # Get JSON data from the request body.
         json_data = request.get_json()
         
-        # -------------------------------
-        # Validate and sanitize input
-        # -------------------------------
+        # Validate the received data structure.
         is_valid, validation_message = validate_input(json_data)
         if not is_valid:
             return jsonify({"status": "error", "message": validation_message}), 400
 
-        # Create a sanitized dictionary to use in the prompt
+        # Sanitize each string value in the input dictionary to prevent injection.
         sanitized_data = {key: sanitize_value(value) for key, value in json_data.items()}
 
-        # -------------------------------
-        # Build prompt for Gemini
-        # -------------------------------
+        # Construct the prompt for the Gemini model.
+        # The prompt is a clear instruction set for the AI, with the sanitized
+        # user data embedded safely within it.
         prompt = f"""
 You are a financial loan eligibility advisor specializing in agricultural loans for farmers in India.
 You will be provided with a JSON object that contains information about a farmer's loan application.
@@ -112,26 +127,28 @@ Your task:
    - Schemes
 """
 
-        # -------------------------------
-        # Call Gemini model
-        # -------------------------------
-        # It's better to instantiate the model once outside the function if possible,
-        # but for simplicity, it's fine here.
+        # Initialize the Gemini model and generate content based on the prompt.
         model = genai.GenerativeModel(MODEL_ID)
         response = model.generate_content(prompt)
 
+        # Extract the text response.
         reply = response.text if response and response.text else "No response from model."
 
+        # Return the AI's response to the client.
         return jsonify({"status": "success", "message": reply}), 200
 
     except Exception as e:
+        # Log the detailed error for debugging purposes on the server.
         print(f"Unexpected Error: {e}")
         traceback.print_exc()
-        # Return a generic error message to the client for security
+        # Return a generic, secure error message to the client.
         return jsonify({"status": "error", "message": "An internal server error occurred."}), 500
 
-
+# ------------------------------------
+# Run the Flask App
+# ------------------------------------
 if __name__ == '__main__':
-    # Use host='0.0.0.0' to make the server accessible externally (e.g., in a container)
-    # Set debug to False for production
+    # Run the app.
+    # host='0.0.0.0' makes the server accessible from any machine on the network.
+    # debug=True enables live-reloading and helpful error pages for development.
     app.run(host='0.0.0.0', port=5000, debug=True)
