@@ -431,20 +431,23 @@
       form.addEventListener("change", updateProgress);
       updateProgress();
 
-      // Robust parse for FormData -> JS object
+      // Robust parse for FormData that is coming from the frontend page -> JS object
       function formDataToObject(f) {
         const fd = new FormData(f);
+        console.log(fd);
         const obj = {};
         for (const [key, value] of fd.entries()) {
           const el = f.querySelector(`[name="${key}"]`);
           // if element is number type, try parse
           if (el && el.type === "number") {
             const n = parseFloat(value);
+            console.log("n is",n);
             obj[key] = Number.isFinite(n) ? n : null;
           } else {
             obj[key] = value;
           }
         }
+        console.log("obj is",obj);//yha tk data JS object m aaya h and aage API k liye hme data JSON m chie
         return obj;
       }
 
@@ -468,32 +471,47 @@
         displayLoading();
 
         const data = formDataToObject(form);
+        console.log("data 473 line",data);
+        
 
         try {
-          const response = await fetch("/plan_crop", {
+          //fetch -> used to make HTTP request from brouser to server
+          const response = await fetch("/predict", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(data)
+            body: JSON.stringify(data) //jo data JS object m convert hua tha form data k thorugh usko yha JSON m convert kia jega
           });
-
+          console.log(response);
+          console.log("response status",response.status);
+          
           if (!response.ok) {
             // try to parse a JSON error; fall back to text
+            //sara pnga yha ad rha h , yha error 500 aara h then vo catch m khtm hojara h sb code
             let errMsg = `Prediction failed (status ${response.status})`;
+            console.log("errMsg",errMsg);
+            
             try {
+              //yha data aana chie jo ni ara
               const jsonErr = await response.json();
+              console.log("JSON ERROR ln 493 : ",jsonErr);
               if (jsonErr && jsonErr.error) errMsg = jsonErr.error;
             } catch (parseErr) {
-              try {
+              try {  
                 const txt = await response.text();
+                console.log("txt is",txt);
                 if (txt) errMsg = txt;
-              } catch (_) {}
+              } catch (err) {
+                console.log(err.message);
+                
+              }
             }
             throw new Error(errMsg);
           }
 
           // parse JSON result (safe)
           const result = await response.json();
-
+          console.log("result:",result);
+          
           if (result && result.crop && result.guide) {
             displayResultAndGuide(result.crop, result.guide);
           } else {
