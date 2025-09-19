@@ -114,13 +114,14 @@ flutter run
 👨‍💻 Meet the Team - Tech Busters
 This project was brought to life by a dedicated team of developers and innovators.
 
-Name	Role
-Piyangshu Banik	Team Leader • AI & ML • Web Development
-Pranshu Bhutani	Backend Developer
-Gaganpreet Singh	AI & ML Developer
-Advitiya Sharma	Web Developer
-Lakshay Goel	Flutter Developer
-Ramandeep Kaur	Python & Documentation Specialist
+| Name                  | Role                                  |
+| :-------------------- | :------------------------------------ |
+| **Piyangshu Banik** | Team Leader • AI & ML • Web Development |
+| Pranshu Bhutani       | Backend Developer                     |
+| Gaganpreet Singh      | AI & ML Developer                     |
+| Advitiya Sharma       | Web Developer                         |
+| Lakshay Goel          | Flutter Developer                     |
+| Ramandeep Kaur        | Python & Documentation Specialist     |
 
 Export to Sheets
 🤝 Contributing
