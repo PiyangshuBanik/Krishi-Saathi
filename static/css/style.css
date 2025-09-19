@@ -1,13 +1,13 @@
 /* Theme System - Dark/Light Mode */
 :root {
     /* Light mode colors */
-    --bg-primary: #ffffff;
-    --bg-secondary: #f8fafc;
-    --bg-tertiary: #f1f5f9;
+    --bg-primary: #c4e4c4;
+    --bg-secondary: #f8fcf8;
+    --bg-tertiary: #b0fec1;
     --text-primary: #1e293b;
     --text-secondary: #64748b;
     --text-muted: #94a3b8;
-    --border-color: #e2e8f0;
+    --border-color: #b9ebb7;
     --shadow-light: rgba(0, 0, 0, 0.05);
     --shadow-medium: rgba(0, 0, 0, 0.1);
     --shadow-heavy: rgba(0, 0, 0, 0.15);
@@ -26,8 +26,8 @@
 
 [data-theme="dark"] {
     /* Dark mode colors - "Earthy Greens" Theme from palette */
-    --bg-primary: #2F5249; /* Darkest green from palette */
-    --bg-secondary: #437057; /* Mid-dark green from palette */
+    --bg-primary: #1E2A25; /* Darkest green from palette */
+    --bg-secondary: #1a2721; /* Mid-dark green from palette */
     --bg-tertiary: #97B067; /* Muted sage green from palette for hovers */
     --text-primary: #f0f2f5; /* Softer off-white for text */
     --text-secondary: #b0c0d1; /* Muted gray for secondary text */

@@ -41,6 +41,19 @@
     --footer-bg: #121c17;;
 }
 
+header h1 {
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-size: 1.8rem;
+    font-weight: 700;
+}
+header h1 a {
+    text-decoration: none;
+    color: inherit;
+}
+
 /* --- BASE STYLES --- */
 * {
     box-sizing: border-box;
