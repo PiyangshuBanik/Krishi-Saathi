@@ -1,107 +1,112 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Krishi-Saathi Assistant - Smart Farming Solutions</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Krishi-Saathi Assistant - Smart Farming Solutions</title>
 
-    <!-- Favicon -->
-    <link rel="icon" type="image/png" href="static\images\logo.png">
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="../static/images/logo.png">
 
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-    
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 
-    <!-- Stylesheet -->
-    <link rel="stylesheet" href="../static\css\chat.css" />
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="../static/css/chat.css" />
 </head>
 <body>
-    <div class="page-container">
-        <header>
-            <div class="header-content">
-                <div class="logo">
-                    <a href="main.html" class="nav-back">
-                        <i class="fas fa-chevron-left"></i> 
-                    </a>
-                    <h1>Krishi-Saathi</h1>
-                </div>
-                <div class="header-actions">
-                    <button class="theme-toggle" aria-label="Toggle theme">
-                        <i class="fas fa-sun sun-icon"></i>
-                        <i class="fas fa-moon moon-icon"></i>
-                        <span class="theme-text">Light</span>
-                    </button>
-                </div>
+  <div class="page-container">
+    <header>
+      <div class="header-content">
+        <div class="logo">
+          <a href="main.html" class="nav-back">
+            <i class="fas fa-chevron-left"></i>
+          </a>
+          <h1>Krishi-Saathi</h1>
+        </div>
+        <div class="header-actions">
+          <button class="theme-toggle" aria-label="Toggle theme">
+            <i class="fas fa-sun sun-icon"></i>
+            <i class="fas fa-moon moon-icon"></i>
+            <span class="theme-text">Light</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <div id="chat-container">
+        <div class="chat-header">
+          <i class="fas fa-robot"></i>
+          <h2>Ask me anything about agriculture</h2>
+        </div>
+
+        <div id="chat-window">
+          <div class="welcome-message">
+            <h3><i class="fas fa-leaf"></i> Welcome to Krishi-Saathi!</h3>
+            <p>I'm powered by Google Gemini AI to help with your farming questions.</p>
+            <div class="suggestions">
+              <div class="suggestion">Best crops for this season?</div>
+              <div class="suggestion">Organic pest control methods</div>
+              <div class="suggestion">Water conservation techniques</div>
+              <div class="suggestion">Improve soil health</div>
             </div>
-        </header>
+          </div>
+        </div>
 
-        <main>
-            <div id="chat-container">
-                <div class="chat-header">
-                    <i class="fas fa-robot"></i>
-                    <h2>Ask me anything about agriculture</h2>
-                </div>
+        <form id="chat-form">
+          <div class="input-container">
+            <input type="text" id="chat-input" placeholder="Ask about crops, weather, fertilizers..." aria-label="Chat input" required />
+            <button type="button" id="voice-button" title="Speak">
+              <i class="fas fa-microphone"></i>
+            </button>
+          </div>
+          <button type="submit" id="send-button" title="Send Message">
+            <i class="fas fa-paper-plane"></i>
+            <span>Send</span>
+          </button>
+        </form>
+      </div>
+    </main>
 
-                <div id="chat-window">
-                    <div class="welcome-message">
-                        <h3><i class="fas fa-leaf"></i> Welcome to Krishi-Saathi!</h3>
-                        <p>I'm powered by Google Gemini AI to help with your farming questions.</p>
-                        <div class="suggestions">
-                            <div class="suggestion">Best crops for this season?</div>
-                            <div class="suggestion">Organic pest control methods</div>
-                            <div class="suggestion">Water conservation techniques</div>
-                            <div class="suggestion">Improve soil health</div>
-                        </div>
-                    </div>
-                </div>
+    <footer class="site-footer">
+      <div class="footer-inner">
+        <div class="footer-brand">
+          <img src="../images/logo.png" alt="Krishi-Saathi logo" class="footer-logo" />
+          <h3>Krishi-Saathi</h3>
+          <p>Empowering India's Farming Future</p>
+          <div class="social-media">
+            <a href="#"><i class="fab fa-instagram"></i></a>
+            <a href="#"><i class="fab fa-github"></i></a>
+            <a href="#"><i class="fab fa-linkedin"></i></a>
+          </div>
+        </div>
+        <div class="footer-links">
+          <h4>Quick Links</h4>
+          <ul>
+            <li><a href="index.html">Home</a></li>
+            <li><a href="main.html">Dashboard</a></li>
+            <li><a href="feed-back.html">Feedback</a></li>
+          </ul>
+        </div>
+        <div class="footer-links">
+          <h4>Tools</h4>
+          <ul>
+            <li><a href="Crop Recommendation/templates/index.html">Crop Recommendation</a></li>
+            <li><a href="Crop_Planning/templates/cropplan.html">Crop Planner</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">© 2025 Krishi-Saathi • Made for farmers</div>
+    </footer>
+  </div>
 
-                <form id="chat-form">
-                    <div class="input-container">
-                        <input type="text" id="chat-input" placeholder="Ask about crops, weather, fertilizers..." aria-label="Chat input" autofocus required />
-                    </div>
-                    <button type="submit" id="send-button" title="Send Message">
-                        <i class="fas fa-paper-plane"></i>
-                        <span>Send</span>
-                    </button>
-                </form>
-            </div>
-        </main>
-
-        <footer class="site-footer">
-            <div class="footer-inner">
-                <div class="footer-brand">
-                    <img src="../images/logo.png" alt="Krishi-Saathi logo" class="footer-logo" />
-                    <h3>Krishi-Saathi</h3>
-                    <p>Empowering India's Farming Future</p>
-                    <div class="social-media">
-                        <a href="#" target="_blank" rel="noopener noreferrer" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
-                        <a href="#" target="_blank" rel="noopener noreferrer" aria-label="GitHub"><i class="fab fa-github"></i></a>
-                        <a href="#" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn"><i class="fab fa-linkedin"></i></a>
-                    </div>
-                </div>
-                <div class="footer-links">
-                    <h4>Quick Links</h4>
-                    <ul>
-                        <li><a href="index.html">Home</a></li>
-                        <li><a href="main.html">Dashboard</a></li>
-                        <li><a href="feed-back.html">Feedback</a></li>
-                    </ul>
-                </div>
-                <div class="footer-links">
-                    <h4>Tools</h4>
-                    <ul>
-                        <li><a href="Crop Recommendation/templates/index.html">Crop Recommendation</a></li>
-                        <li><a href="Crop_Planning/templates/cropplan.html">Crop Planner</a></li>
-                    </ul>
-                </div>
-            </div>
-            <div class="footer-bottom">© 2025 Krishi-Saathi • Made for farmers</div>
-        </footer>
-    </div>
-    <script src="../static\js\chat.js"></script>
+  <!-- JS -->
+  <script src="../static/js/chat.js"></script>
 </body>
 </html>
