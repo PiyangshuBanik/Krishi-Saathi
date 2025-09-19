@@ -188,5 +188,5 @@ def gemini_chat():
         return jsonify({'error': 'Failed to get a response from the AI. Please try again.'}), 500
 
 # Run the app
-if __name__ == '_main_':
+if __name__ == '__main__':
     app.run(debug=True)
