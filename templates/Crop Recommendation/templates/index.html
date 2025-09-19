@@ -5,16 +5,51 @@
     <title>Crop Recommendation</title>
     <link rel="icon" type="image/png" href="/AgriTech/images/logo.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
-    <link
-      rel="stylesheet"
-      href="{{ url_for('static', filename='style.css') }}"
-    />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap"
-      rel="stylesheet"
-    />
-    <link rel="stylesheet" href="../../theme.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+
     <style>
+      /* --- Light Theme (Default) --- */
+      :root {
+        --bg-primary: rgba(255, 255, 255, 0.95);
+        --bg-secondary: #d4fc79;
+        --text-primary: #333;
+        --text-muted: #81c784;
+        --primary-green: #2e7d32;
+        --shadow-medium: rgba(0, 0, 0, 0.1);
+        --shadow-light: rgba(0, 0, 0, 0.05);
+        --border-color: #e8f5e8;
+        --border-focus: #66bb6a;
+        --border-valid: #4caf50;
+        --submit-btn-start: #2e7d32;
+        --submit-btn-end: #388e3c;
+        --submit-btn-hover-start: #1b5e20;
+        --submit-btn-hover-end: #2e7d32;
+        --theme-toggle-bg: rgba(46, 125, 50, 0.1);
+        --theme-toggle-border: rgba(46, 125, 50, 0.3);
+        --theme-toggle-color: #2e7d32;
+      }
+
+      /* --- Dark Theme --- */
+      body.dark-theme {
+        --bg-primary: #437057;
+        --bg-secondary: #2F5249;
+        --text-primary: #f0f8ff;
+        --text-muted: #97B067;
+        --primary-green: #E3DE61;
+        --shadow-medium: rgba(0, 0, 0, 0.4);
+        --shadow-light: rgba(0, 0, 0, 0.2);
+        --border-color: #97B067;
+        --border-focus: #E3DE61;
+        --border-valid: #97B067;
+        --submit-btn-start: #97B067;
+        --submit-btn-end: #437057;
+        --submit-btn-hover-start: #E3DE61;
+        --submit-btn-hover-end: #97B067;
+        --theme-toggle-bg: rgba(227, 222, 97, 0.1);
+        --theme-toggle-border: rgba(227, 222, 97, 0.3);
+        --theme-toggle-color: #E3DE61;
+      }
+
       * {
         box-sizing: border-box;
         transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
@@ -22,8 +57,8 @@
 
       body {
         font-family: "Poppins", sans-serif;
-        background-color: var(--bg-secondary, #d4fc79);
-        color: var(--text-primary, #333);
+        background-color: var(--bg-secondary);
+        color: var(--text-primary);
         background-size: 400% 400%;
         animation: gradientShift 8s ease infinite;
         margin: 0;
@@ -35,44 +70,30 @@
       }
 
       @keyframes gradientShift {
-        0% {
-          background-position: 0% 50%;
-        }
-        50% {
-          background-position: 100% 50%;
-        }
-        100% {
-          background-position: 0% 50%;
-        }
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
       }
 
       .container {
-        background: var(--bg-primary, rgba(255, 255, 255, 0.95));
+        background: var(--bg-primary);
         backdrop-filter: blur(10px);
         padding: 50px 40px;
         border-radius: 24px;
-        box-shadow: 0 20px 40px var(--shadow-medium, rgba(0, 0, 0, 0.1)),
-          0 10px 20px var(--shadow-light, rgba(0, 0, 0, 0.05)),
-          inset 0 1px 0 rgba(255, 255, 255, 0.8);
+        box-shadow: 0 20px 40px var(--shadow-medium), 0 10px 20px var(--shadow-light),
+          inset 0 1px 0 rgba(255, 255, 255, 0.1);
         text-align: center;
         max-width: 700px;
         width: 100%;
         position: relative;
         overflow: hidden;
-        transform: translateY(0);
         animation: slideIn 0.8s ease-out;
-        color: var(--text-primary, #333);
+        color: var(--text-primary);
       }
 
       @keyframes slideIn {
-        from {
-          opacity: 0;
-          transform: translateY(30px);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
+        from { opacity: 0; transform: translateY(30px); }
+        to { opacity: 1; transform: translateY(0); }
       }
 
       .container::before {
@@ -82,32 +103,21 @@
         left: -100%;
         width: 100%;
         height: 100%;
-        background: linear-gradient(
-          90deg,
-          transparent,
-          rgba(255, 255, 255, 0.3),
-          transparent
-        );
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
         animation: shimmer 3s infinite;
       }
 
       @keyframes shimmer {
-        0% {
-          left: -100%;
-        }
-        100% {
-          left: 100%;
-        }
+        0% { left: -100%; }
+        100% { left: 100%; }
       }
 
       h1 {
         margin-bottom: 40px;
-        color: var(--primary-green, #2e7d32);
+        color: var(--primary-green);
         font-size: 32px;
         font-weight: 700;
         text-shadow: 0 2px 4px rgba(46, 125, 50, 0.1);
-        position: relative;
-        z-index: 1;
       }
 
       .form-grid {
@@ -116,37 +126,29 @@
         margin-bottom: 30px;
       }
 
-      .input-group {
-        position: relative;
-      }
+      .input-group { position: relative; }
 
       .input-group input {
         width: 100%;
         padding: 16px 20px;
-        border: 2px solid #e8f5e8;
+        border: 2px solid var(--border-color);
         border-radius: 12px;
         font-size: 16px;
-        font-family: inherit;
-        background: var(--bg-primary, rgba(255, 255, 255, 0.9));
-        color: var(--text-primary, #333);
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        background: var(--bg-primary);
+        color: var(--text-primary);
         outline: none;
       }
 
       .input-group input:focus {
-        border-color: #66bb6a;
-        background: var(--bg-primary, #ffffff);
-        box-shadow: 0 0 0 3px rgba(102, 187, 106, 0.1),
-          0 4px 12px rgba(102, 187, 106, 0.15);
+        border-color: var(--border-focus);
+        box-shadow: 0 0 0 3px rgba(102, 187, 106, 0.1), 0 4px 12px rgba(102, 187, 106, 0.15);
         transform: translateY(-2px);
       }
 
-      .input-group input:valid {
-        border-color: #4caf50;
-      }
+      .input-group input:valid { border-color: var(--border-valid); }
 
       .input-group input::placeholder {
-        color: var(--text-muted, #81c784);
+        color: var(--text-muted);
         font-weight: 500;
       }
 
@@ -155,11 +157,9 @@
         right: 16px;
         top: 50%;
         transform: translateY(-50%);
-        color: #66bb6a;
+        color: var(--border-focus);
         font-size: 18px;
-        pointer-events: none;
         opacity: 0;
-        transition: opacity 0.3s ease;
       }
 
       .input-group input:focus + .input-icon,
@@ -170,49 +170,21 @@
       .submit-btn {
         width: 100%;
         padding: 18px 24px;
-        background: linear-gradient(135deg, #2e7d32, #388e3c);
+        background: linear-gradient(135deg, var(--submit-btn-start), var(--submit-btn-end));
         color: white;
         font-weight: 600;
         font-size: 18px;
         cursor: pointer;
         border: none;
         border-radius: 12px;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        position: relative;
-        overflow: hidden;
         text-transform: uppercase;
         letter-spacing: 0.5px;
       }
 
       .submit-btn:hover {
-        background: linear-gradient(135deg, #1b5e20, #2e7d32);
+        background: linear-gradient(135deg, var(--submit-btn-hover-start), var(--submit-btn-hover-end));
         transform: translateY(-3px);
-        box-shadow: 0 10px 25px rgba(46, 125, 50, 0.3),
-          0 5px 15px rgba(46, 125, 50, 0.2);
-      }
-
-      .submit-btn:active {
-        transform: translateY(-1px);
-      }
-
-      .submit-btn::before {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: -100%;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(
-          90deg,
-          transparent,
-          rgba(255, 255, 255, 0.2),
-          transparent
-        );
-        transition: left 0.6s;
-      }
-
-      .submit-btn:hover::before {
-        left: 100%;
+        box-shadow: 0 10px 25px rgba(46, 125, 50, 0.3), 0 5px 15px rgba(46, 125, 50, 0.2);
       }
 
       .back-btn {
@@ -222,48 +194,10 @@
         color: white;
         font-weight: 600;
         font-size: 18px;
-        cursor: pointer;
-        border: none;
         border-radius: 12px;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        position: relative;
-        overflow: hidden;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
         margin-top: 15px;
         text-decoration: none;
         display: inline-block;
-      }
-
-      .back-btn:hover {
-        background: linear-gradient(135deg, #e65100, #f57c00);
-        transform: translateY(-3px);
-        box-shadow: 0 10px 25px rgba(245, 124, 0, 0.3),
-          0 5px 15px rgba(245, 124, 0, 0.2);
-      }
-
-      .back-btn:active {
-        transform: translateY(-1px);
-      }
-
-      .back-btn::before {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: -100%;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(
-          90deg,
-          transparent,
-          rgba(255, 255, 255, 0.2),
-          transparent
-        );
-        transition: left 0.6s;
-      }
-
-      .back-btn:hover::before {
-        left: 100%;
       }
 
       .features {
@@ -274,61 +208,23 @@
         border-top: 1px solid rgba(46, 125, 50, 0.1);
       }
 
-      .feature {
-        text-align: center;
-        opacity: 0.8;
-      }
+      .feature-text { font-size: 12px; color: var(--primary-green); font-weight: 500; }
 
-      .feature-icon {
-        font-size: 24px;
-        margin-bottom: 8px;
-        display: block;
-      }
-
-      .feature-text {
+      .theme-toggle {
+        background: var(--theme-toggle-bg);
+        border: 1px solid var(--theme-toggle-border);
+        color: var(--theme-toggle-color);
+        padding: 8px 12px;
+        border-radius: 20px;
         font-size: 12px;
-        color: #2e7d32;
-        font-weight: 500;
+        cursor: pointer;
       }
 
-      @media (max-width: 768px) {
-        body {
-          padding: 10px;
-        }
+      body.dark-theme .moon-icon { display: none; }
+      body:not(.dark-theme) .sun-icon { display: none; }
 
-        .container {
-          padding: 40px 30px;
-          margin: 10px;
-        }
-
-        h1 {
-          font-size: 28px;
-          margin-bottom: 30px;
-        }
-
-        .features {
-          flex-direction: column;
-          gap: 15px;
-        }
-
-        .feature {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 10px;
-        }
-
-        .feature-icon {
-          margin-bottom: 0;
-        }
-      }
-
-      /* Loading animation */
-      .loading {
-        pointer-events: none;
-        opacity: 0.7;
-      }
-
+      /* Loading */
+      .loading { pointer-events: none; opacity: 0.7; }
       .loading .submit-btn::after {
         content: "";
         position: absolute;
@@ -343,21 +239,10 @@
         animation: spin 1s linear infinite;
       }
 
-      @keyframes spin {
-        0% {
-          transform: translateY(-50%) rotate(0deg);
-        }
-        100% {
-          transform: translateY(-50%) rotate(360deg);
-        }
-      }
+      @keyframes spin { to { transform: translateY(-50%) rotate(360deg); } }
 
-      /* Tooltip styles */
-      .tooltip {
-        position: relative;
-        display: inline-block;
-      }
-
+      /* Tooltip */
+      .tooltip { position: relative; display: inline-block; }
       .tooltip::after {
         content: attr(data-tooltip);
         position: absolute;
@@ -369,140 +254,66 @@
         padding: 8px 12px;
         border-radius: 6px;
         font-size: 12px;
-        white-space: nowrap;
         opacity: 0;
-        pointer-events: none;
         transition: opacity 0.3s;
-        z-index: 1000;
+        white-space: nowrap;
       }
+      .tooltip:hover::after { opacity: 1; }
 
-      .tooltip:hover::after {
-        opacity: 1;
+      @media (max-width: 768px) {
+        .container { padding: 40px 30px; }
+        h1 { font-size: 28px; }
+        .features { flex-direction: column; gap: 15px; }
       }
     </style>
   </head>
   <body>
-    <header></header>
     <div class="container">
       <div style="position: absolute; top: 20px; right: 20px;">
-        <button class="theme-toggle" aria-label="Toggle dark/light mode" style="background: rgba(46, 125, 50, 0.1); border: 1px solid rgba(46, 125, 50, 0.3); color: #2e7d32; padding: 8px 12px; border-radius: 20px; font-size: 12px;">
+        <button class="theme-toggle">
           <i class="fas fa-sun sun-icon"></i>
           <i class="fas fa-moon moon-icon"></i>
           <span class="theme-text">Light</span>
         </button>
       </div>
-      
+
       <h1>🌾 Crop Recommendation System</h1>
 
       <form action="/predict" method="POST" id="cropForm">
         <div class="form-grid">
-          <div
-            class="input-group tooltip"
-            data-tooltip="Nitrogen content in soil (0-140 kg/ha)"
-          >
-            <input
-              type="number"
-              name="N"
-              placeholder="Nitrogen (N)"
-              required
-              min="0"
-              max="140"
-            />
+          <div class="input-group tooltip" data-tooltip="Nitrogen content in soil (0-140 kg/ha)">
+            <input type="number" name="N" placeholder="Nitrogen (N)" required min="0" max="140"/>
             <span class="input-icon">🧪</span>
           </div>
 
-          <div
-            class="input-group tooltip"
-            data-tooltip="Phosphorus content in soil (5-145 kg/ha)"
-          >
-            <input
-              type="number"
-              name="P"
-              placeholder="Phosphorus (P)"
-              required
-              min="5"
-              max="145"
-            />
-            <span class="input-icon">⚗</span>
+          <div class="input-group tooltip" data-tooltip="Phosphorus content (5-145 kg/ha)">
+            <input type="number" name="P" placeholder="Phosphorus (P)" required min="5" max="145"/>
+            <span class="input-icon">⚗️</span>
           </div>
 
-          <div
-            class="input-group tooltip"
-            data-tooltip="Potassium content in soil (5-205 kg/ha)"
-          >
-            <input
-              type="number"
-              name="K"
-              placeholder="Potassium (K)"
-              required
-              min="5"
-              max="205"
-            />
+          <div class="input-group tooltip" data-tooltip="Potassium content (5-205 kg/ha)">
+            <input type="number" name="K" placeholder="Potassium (K)" required min="5" max="205"/>
             <span class="input-icon">🔬</span>
           </div>
 
-          <div
-            class="input-group tooltip"
-            data-tooltip="Average temperature (8-45°C)"
-          >
-            <input
-              type="number"
-              name="temperature"
-              placeholder="Temperature (°C)"
-              step="0.1"
-              required
-              min="8"
-              max="45"
-            />
-            <span class="input-icon">🌡</span>
+          <div class="input-group tooltip" data-tooltip="Average temperature (8-45°C)">
+            <input type="number" name="temperature" placeholder="Temperature (°C)" step="0.1" required min="8" max="45"/>
+            <span class="input-icon">🌡️</span>
           </div>
 
-          <div
-            class="input-group tooltip"
-            data-tooltip="Relative humidity (14-100%)"
-          >
-            <input
-              type="number"
-              name="humidity"
-              placeholder="Humidity (%)"
-              step="0.1"
-              required
-              min="14"
-              max="100"
-            />
+          <div class="input-group tooltip" data-tooltip="Relative humidity (14-100%)">
+            <input type="number" name="humidity" placeholder="Humidity (%)" step="0.1" required min="14" max="100"/>
             <span class="input-icon">💧</span>
           </div>
 
-          <div
-            class="input-group tooltip"
-            data-tooltip="Soil pH level (3.5-10.0)"
-          >
-            <input
-              type="number"
-              name="ph"
-              placeholder="pH"
-              step="0.01"
-              required
-              min="3.5"
-              max="10"
-            />
+          <div class="input-group tooltip" data-tooltip="Soil pH level (3.5-10.0)">
+            <input type="number" name="ph" placeholder="pH" step="0.01" required min="3.5" max="10"/>
             <span class="input-icon">📊</span>
           </div>
 
-          <div
-            class="input-group tooltip"
-            data-tooltip="Annual rainfall (20-300mm)"
-          >
-            <input
-              type="number"
-              name="rainfall"
-              placeholder="Rainfall (mm)"
-              step="0.1"
-              required
-              min="20"
-              max="300"
-            />
-            <span class="input-icon">🌧</span>
+          <div class="input-group tooltip" data-tooltip="Annual rainfall (20-300mm)">
+            <input type="number" name="rainfall" placeholder="Rainfall (mm)" step="0.1" required min="20" max="300"/>
+            <span class="input-icon">🌧️</span>
           </div>
         </div>
 
@@ -512,62 +323,63 @@
       <a href="javascript:history.back()" class="back-btn">🔙 Back to Main</a>
 
       <div class="features">
-        <div class="feature">
-          <span class="feature-icon">🎯</span>
-          <span class="feature-text">Accurate Prediction</span>
-        </div>
-        <div class="feature">
-          <span class="feature-icon">⚡</span>
-          <span class="feature-text">Instant Results</span>
-        </div>
-        <div class="feature">
-          <span class="feature-icon">🌱</span>
-          <span class="feature-text">Smart Farming</span>
-        </div>
+        <div><span class="feature-icon">🎯</span><span class="feature-text">Accurate Prediction</span></div>
+        <div><span class="feature-icon">⚡</span><span class="feature-text">Instant Results</span></div>
+        <div><span class="feature-icon">🌱</span><span class="feature-text">Smart Farming</span></div>
       </div>
     </div>
 
     <script>
-      // Form submission animation
-      document
-        .getElementById("cropForm")
-        .addEventListener("submit", function (e) {
-          const container = document.querySelector(".container");
-          const submitBtn = document.querySelector(".submit-btn");
+      document.addEventListener("DOMContentLoaded", () => {
+        // Theme toggle
+        const themeToggle = document.querySelector(".theme-toggle");
+        const themeText = document.querySelector(".theme-text");
+        const applyTheme = () => {
+          const savedTheme = localStorage.getItem("theme") || "light";
+          document.body.classList.toggle("dark-theme", savedTheme === "dark");
+          themeText.textContent = savedTheme.charAt(0).toUpperCase() + savedTheme.slice(1);
+        };
+        themeToggle.addEventListener("click", () => {
+          document.body.classList.toggle("dark-theme");
+          const currentTheme = document.body.classList.contains("dark-theme") ? "dark" : "light";
+          localStorage.setItem("theme", currentTheme);
+          themeText.textContent = currentTheme.charAt(0).toUpperCase() + currentTheme.slice(1);
+        });
+        applyTheme();
 
-          container.classList.add("loading");
-          submitBtn.innerHTML = "🔄 Analyzing...";
+        // Form loading
+        const cropForm = document.getElementById("cropForm");
+        cropForm.addEventListener("submit", () => {
+          document.querySelector(".container").classList.add("loading");
+          document.querySelector(".submit-btn").innerHTML = "🔄 Analyzing...";
         });
 
-      // Input validation feedback
-      const inputs = document.querySelectorAll('input[type="number"]');
-      inputs.forEach((input) => {
-        input.addEventListener("input", function () {
-          const min = parseFloat(this.min);
-          const max = parseFloat(this.max);
-          const value = parseFloat(this.value);
+        // Input validation
+        const inputs = document.querySelectorAll('input[type="number"]');
+        inputs.forEach(input => {
+          input.addEventListener("input", function () {
+            const min = parseFloat(this.min);
+            const max = parseFloat(this.max);
+            const value = parseFloat(this.value);
+            const errorColor = "#f44336";
+            const validColor = getComputedStyle(document.documentElement).getPropertyValue('--border-valid');
 
-          if (value < min || value > max) {
-            this.style.borderColor = "#f44336";
-            this.style.boxShadow = "0 0 0 3px rgba(244, 67, 54, 0.1)";
-          } else if (this.value) {
-            this.style.borderColor = "#4caf50";
-            this.style.boxShadow = "0 0 0 3px rgba(76, 175, 80, 0.1)";
-          }
-        });
-      });
+            if (this.value && (value < min || value > max)) {
+              this.style.borderColor = errorColor;
+              this.style.boxShadow = `0 0 0 3px ${errorColor}20`;
+            } else if (this.value) {
+              this.style.borderColor = validColor;
+              this.style.boxShadow = `0 0 0 3px ${validColor}20`;
+            } else {
+              this.style.borderColor = "";
+              this.style.boxShadow = "";
+            }
+          });
 
-      // Focus effects
-      inputs.forEach((input) => {
-        input.addEventListener("focus", function () {
-          this.parentElement.style.transform = "translateY(-2px)";
-        });
-
-        input.addEventListener("blur", function () {
-          this.parentElement.style.transform = "translateY(0)";
+          input.addEventListener("focus", () => input.parentElement.style.transform = "translateY(-2px)");
+          input.addEventListener("blur", () => input.parentElement.style.transform = "translateY(0)");
         });
       });
     </script>
-    <script src="../../theme.js"></script>
   </body>
 </html>

@@ -1,59 +1,76 @@
 document.addEventListener("DOMContentLoaded", function () {
-  if (typeof initializeParticles === "function") {
-    initializeParticles();
-  }
-
-  // Scroll progress indicator
-  const scrollProgress = document.getElementById("scrollProgress");
-  window.addEventListener("scroll", () => {
-    const scrollTop = window.pageYOffset;
-    const docHeight = document.body.offsetHeight - window.innerHeight;
-    const scrollPercent = (scrollTop / docHeight) * 100;
-    scrollProgress.style.width = scrollPercent + "%";
-  });
-
-  // Smooth scroll for navigation links
-  document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
-    anchor.addEventListener("click", function (e) {
-      e.preventDefault();
-      const target = document.querySelector(this.getAttribute("href"));
-      if (target) {
-        target.scrollIntoView({
-          behavior: "smooth",
-          block: "start",
+    // --- PARTICLES.JS INITIALIZATION ---
+    // This is a placeholder configuration. You can customize it.
+    if (typeof particlesJS !== 'undefined') {
+        particlesJS('particles-js', {
+            "particles": {
+                "number": { "value": 80, "density": { "enable": true, "value_area": 800 } },
+                "color": { "value": "#4caf50" },
+                "shape": { "type": "circle" },
+                "opacity": { "value": 0.5, "random": true },
+                "size": { "value": 3, "random": true },
+                "line_linked": { "enable": true, "distance": 150, "color": "#66bb6a", "opacity": 0.4, "width": 1 },
+                "move": { "enable": true, "speed": 1, "direction": "none", "straight": false }
+            },
+            "interactivity": {
+                "detect_on": "canvas",
+                "events": { "onhover": { "enable": true, "mode": "repulse" } },
+                "modes": { "repulse": { "distance": 60, "duration": 0.4 } }
+            },
+            "retina_detect": true
         });
-      }
-    });
-  });
+    }
 
-  // Enhanced loading animations
-  const observerOptions = {
-    threshold: 0.1,
-    rootMargin: "0px 0px -50px 0px",
-  };
+    // --- SCROLL PROGRESS INDICATOR ---
+    const scrollProgress = document.getElementById("scrollProgress");
+    if (scrollProgress) {
+        window.addEventListener("scroll", () => {
+            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+            const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+            const scrollPercent = (scrollTop / docHeight) * 100;
+            scrollProgress.style.width = scrollPercent + "%";
+        });
+    }
 
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach((entry) => {
-      if (entry.isIntersecting) {
-        entry.target.style.animation = "fadeInUp 0.8s ease-out forwards";
-      }
-    });
-  }, observerOptions);
+    // --- INTERSECTION OBSERVER FOR ANIMATIONS ---
+    const animatedElements = document.querySelectorAll(".animate-in");
+    if (animatedElements.length > 0) {
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach((entry, index) => {
+                if (entry.isIntersecting) {
+                    // Stagger the animation delay
+                    entry.target.style.animationDelay = `${index * 100}ms`;
+                    entry.target.classList.add('visible');
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.1 });
 
-  document.querySelectorAll(".animate-in").forEach((el) => {
-    observer.observe(el);
-  });
+        animatedElements.forEach(el => observer.observe(el));
+    }
+    
+    // --- THEME TOGGLE FUNCTIONALITY ---
+    const themeToggle = document.querySelector('.theme-toggle');
+    const themeText = document.querySelector('.theme-text');
 
-  // Add hover effects for better interactivity
-  document.querySelectorAll(".crop-item, section").forEach((item) => {
-    item.addEventListener("mouseenter", function () {
-      this.style.transform = this.classList.contains("crop-item")
-        ? "translateY(-4px)"
-        : "translateY(-8px)";
-    });
+    const applyTheme = (theme) => {
+        document.documentElement.setAttribute('data-theme', theme);
+        localStorage.setItem('theme', theme);
+        if (themeText) {
+            themeText.textContent = theme.charAt(0).toUpperCase() + theme.slice(1);
+        }
+    };
 
-    item.addEventListener("mouseleave", function () {
-      this.style.transform = "translateY(0)";
-    });
-  });
+    if (themeToggle) {
+        themeToggle.addEventListener('click', () => {
+            const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            applyTheme(newTheme);
+        });
+    }
+
+    // Load saved theme
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    applyTheme(savedTheme);
+
 });
